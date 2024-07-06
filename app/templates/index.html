@@ -1,0 +1,904 @@
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App Query Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #results { margin-top: 20px; }
+        /* Import Google font - Poppins */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        }
+        .result-area-heading {
+        font-size: 2rem;
+        font-weight: 3000;
+        text-align: center;
+        margin-top: 20px;
+        color: var(--text-color);
+        }
+
+        .result-area {
+        position: relative;
+        }
+
+        .result-area-heading {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        /* Other styles */
+        }
+        .container {
+        display: grid;
+        grid-template-columns: 30% 70%;
+        height: 100vh;
+        }
+
+        .result-area {
+        background-color: var(--incoming-chat-bg);
+        padding: 20px;
+        }
+
+        .result-area-container {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px); /* Adjust the height based on the height of the result-area-heading */
+        }
+
+        /* .result-area-container img {
+            display: block;
+            margin-bottom: 20px;
+        } */
+
+        .result-area-container img:last-child {
+        margin-bottom: 0;
+        }
+
+        .result-area-container::-webkit-scrollbar {
+        width: 6px;
+        }
+
+        .result-area-container::-webkit-scrollbar-track {
+        background: var(--incoming-chat-bg);
+        border-radius: 25px;
+        }
+
+        .result-area-container::-webkit-scrollbar-thumb {
+        background: var(--icon-color);
+        border-radius: 25px;
+        }
+        .chat-area {
+        display: flex;
+        flex-direction: column;
+        }
+        :root {
+        --text-color: #FFFFFF;
+        --icon-color: #ACACBE;
+        --icon-hover-bg: #5b5e71;
+        --placeholder-color: #dcdcdc;
+        --outgoing-chat-bg: #343541;
+        --incoming-chat-bg: #444654;
+        --outgoing-chat-border: #343541;
+        --incoming-chat-border: #444654;
+        }
+        .light-mode {
+        --text-color: #343541;
+        --icon-color: #a9a9bc;
+        --icon-hover-bg: #f1f1f3;
+        --placeholder-color: #6c6c6c;
+        --outgoing-chat-bg: #FFFFFF;
+        --incoming-chat-bg: #F7F7F8;
+        --outgoing-chat-border: #FFFFFF;
+        --incoming-chat-border: #D9D9E3;
+        }
+        body {
+        background: var(--outgoing-chat-bg);
+        }
+
+        /* Chats container styling */
+        .chat-container {
+        overflow-y: auto;
+        max-height: 100vh;
+        padding-bottom: 150px;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar {
+        width: 6px;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar-track {
+        background: var(--incoming-chat-bg);
+        border-radius: 25px;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar-thumb {
+        background: var(--icon-color);
+        border-radius: 25px;
+        }
+        .default-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        height: 70vh;
+        padding: 0 10px;
+        text-align: center;
+        color: var(--text-color);
+        }
+        .default-text h1 {
+        font-size: 3.3rem;
+        }
+        .default-text p {
+        margin-top: 10px;
+        font-size: 1.1rem;
+        }
+        .chat-container .chat {
+        padding: 25px 10px;
+        display: flex;
+        justify-content: center;
+        color: var(--text-color);
+        }
+        .chat-container .chat.outgoing {
+        background: var(--outgoing-chat-bg);
+        border: 1px solid var(--outgoing-chat-border);
+        }
+        .chat-container .chat.incoming {
+        background: var(--incoming-chat-bg);
+        border: 1px solid var(--incoming-chat-border);
+        }
+        .chat .chat-content {
+        display: flex;
+        max-width: 1200px;
+        width: 100%;
+        align-items: flex-start;
+        justify-content: space-between;
+        }
+        span.material-symbols-rounded {
+        user-select: none;
+        cursor: pointer;
+        }
+        .chat .chat-content span {
+        cursor: pointer;
+        font-size: 1.3rem;
+        color: var(--icon-color);
+        visibility: hidden;
+        }
+        .chat:hover .chat-content:not(:has(.typing-animation), :has(.error)) span {
+        visibility: visible;
+        }
+        .chat .chat-details {
+        display: flex;
+        align-items: center;
+        }
+        .chat .chat-details img {
+        width: 35px;
+        height: 35px;
+        align-self: flex-start;
+        object-fit: cover;
+        border-radius: 2px;
+        }
+        .chat .chat-details p {
+        white-space: pre-wrap;
+        font-size: 1.05rem;
+        padding: 0 50px 0 25px;
+        color: var(--text-color);
+        word-break: break-word;
+        }
+        .chat .chat-details p.error {
+        color: #e55865;
+        }
+        .chat .typing-animation {
+        padding-left: 25px;
+        display: inline-flex;
+        }
+        .typing-animation .typing-dot {
+        height: 7px;
+        width: 7px;
+        border-radius: 50%;
+        margin: 0 3px;
+        opacity: 0.7;
+        background: var(--text-color);
+        animation: animateDots 1.5s var(--delay) ease-in-out infinite;
+        }
+        .typing-animation .typing-dot:first-child {
+        margin-left: 0;
+        }
+        @keyframes animateDots {
+        0%,44% {
+            transform: translateY(0px);
+        }
+        28% {
+            opacity: 0.4;
+            transform: translateY(-6px);
+        }
+        44% {
+            opacity: 0.2;
+        }
+        }
+
+        /* Typing container styling */
+        .typing-container {
+        position: fixed;
+        bottom: 0;
+        width: -webkit-fill-available;
+        display: flex;
+        padding: 20px 10px;
+        justify-content: center;
+        background: var(--outgoing-chat-bg);
+        border-top: 1px solid var(--incoming-chat-border);
+        }
+        .typing-container .typing-content {
+        display: flex;
+        max-width: 950px;
+        width: 100%;
+        align-items: flex-end;
+        }
+        .typing-container .typing-textarea {
+        width: 100%;
+        display: flex;
+        position: relative;
+        }
+        .typing-textarea textarea {
+        resize: none;
+        height: 55px;
+        width: 100%;
+        border: none;
+        padding: 15px 45px 15px 20px;
+        color: var(--text-color);
+        font-size: 1rem;
+        border-radius: 4px;
+        max-height: 250px;
+        overflow-y: auto;
+        background: var(--incoming-chat-bg);
+        outline: 1px solid var(--incoming-chat-border);
+        }
+        .typing-textarea textarea::placeholder {
+        color: var(--placeholder-color);
+        }
+        .typing-content span {
+        width: 55px;
+        height: 55px;
+        display: flex;
+        border-radius: 4px;
+        font-size: 1.35rem;
+        align-items: center;
+        justify-content: center;
+        color: var(--icon-color);
+        }
+        .typing-textarea span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        visibility: hidden;
+        }
+        .typing-textarea textarea:valid ~ span {
+        visibility: visible;
+        }
+        .typing-controls {
+        display: flex;
+        }
+        .typing-controls span {
+        margin-left: 7px;
+        font-size: 1.4rem;
+        background: var(--incoming-chat-bg);
+        outline: 1px solid var(--incoming-chat-border);
+        }
+        .typing-controls span:hover {
+        background: var(--icon-hover-bg);
+        }
+        .model-response{
+            display: inline-block; /* Makes the container shrink-wrap the content */
+            width: 60vw;
+            align-items: center;
+            justify-content: center;
+            display: flex;
+            flex-direction: column;
+            padding: 10px; /* Adds some space inside the container around the text */
+            background-color: white; /* Sets the background color of the container to white */
+            color: black; /* Sets the text color inside the container to black */
+            border: 1px solid #ccc; /* Optional: adds a light grey border */
+            border-radius: 2px; /* Rounds the corners of the container */
+            box-sizing: border-box; /* Ensures padding and border are included in the total width and height */
+        }
+
+        .result-cards{
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+            gap: 25px;
+        }
+        .result-card1{
+            flex: 1;
+            background-color: white;
+            margin-top: 70px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+        }
+
+        /* Reponsive Media Query */
+        @media screen and (max-width: 600px) {
+        .default-text h1 {
+            font-size: 2.3rem;
+        }
+        :where(.default-text p, textarea, .chat p) {
+            font-size: 0.95rem!important;
+        }
+        .chat-container .chat {
+            padding: 20px 10px;
+        }
+        .chat-container .chat img {
+            height: 32px;
+            width: 32px;
+        }
+        .chat-container .chat p {
+            padding: 0 20px;
+        }
+        .chat .chat-content:not(:has(.typing-animation), :has(.error)) span {
+            visibility: visible;
+        }
+        .typing-container {
+            padding: 15px 10px;
+        }
+        .typing-textarea textarea {
+            height: 45px;
+            padding: 10px 40px 10px 10px;
+        }
+        .typing-content span {
+            height: 45px;
+            width: 45px;
+            margin-left: 5px;
+        }
+        span.material-symbols-rounded {
+            font-size: 1.25rem!important;
+        }
+        }
+    </style>
+</head>
+<body>
+    <body>
+        <div class="container">
+          <div class="result-area">
+            <div class="result-area">
+              <div class="result-area-heading">Result Area</div>
+              <div class="result-area-container">
+                <div class="result-cards">
+                    <div class="result-card1"><img src="data:image/png;base64,{{image_data}}" alt="Stock Trend Image"></div>
+                    
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="chat-area">
+            <div class="model-response">
+                <h2>Answer</h2>
+                <div id="answerOutput"></div>
+            </div>
+        <div class="chat-container"></div>
+        
+        <div class="typing-container">
+          <div class="typing-content">
+            <div class="typing-textarea">
+                <form id="queryForm">
+                    <input type="text" id="queryInput" placeholder="Enter your query" required>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+            <div class="typing-controls">
+              <span id="theme-btn" class="material-symbols-rounded">light_mode</span>
+              <span id="delete-btn" class="material-symbols-rounded">delete</span>
+          </div>
+        </div>
+          </div>
+        </div>
+    
+    <script>
+        document.getElementById('queryForm').onsubmit = function(event) {
+            event.preventDefault();
+            var query = document.getElementById('queryInput').value;
+            fetch('/process_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            }).then(response => response.json())
+            .then(data => {
+                document.getElementById('answerOutput').innerHTML = data.answer;
+                // Display the image
+                var imgElement = document.querySelector('.result-area-container img');
+                if (!imgElement) {
+                    imgElement = document.createElement('img');
+                    imgElement.alt = "Stock Trend Image";
+                    document.querySelector('.result-area-container').appendChild(imgElement);
+                }
+                imgElement.src = `data:image/png;base64,${data.image_data}`;
+                const urlsList = document.getElementById('urlsList');
+                urlsList.innerHTML = '';
+                data.urls.forEach(url => {
+                    let listItem = document.createElement('li');
+                    listItem.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+                    urlsList.appendChild(listItem);
+                });
+            }).catch(error => console.error('Error:', error));
+        };
+    </script>
+</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask App Query Interface</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        #results { margin-top: 20px; }
+        /* Import Google font - Poppins */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+        * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+        }
+        .result-area-heading {
+        font-size: 2rem;
+        font-weight: 3000;
+        text-align: center;
+        margin-top: 20px;
+        color: var(--text-color);
+        }
+
+        .result-area {
+        position: relative;
+        }
+
+        .result-area-heading {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        /* Other styles */
+        }
+        .container {
+        display: grid;
+        grid-template-columns: 30% 70%;
+        height: 100vh;
+        }
+
+        .result-area {
+        background-color: var(--incoming-chat-bg);
+        padding: 20px;
+        }
+
+        .result-area-container {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(100vh - 80px); /* Adjust the height based on the height of the result-area-heading */
+        }
+
+        /* .result-area-container img {
+            display: block;
+            margin-bottom: 20px;
+        } */
+
+        .result-area-container img:last-child {
+        margin-bottom: 0;
+        }
+
+        .result-area-container::-webkit-scrollbar {
+        width: 6px;
+        }
+
+        .result-area-container::-webkit-scrollbar-track {
+        background: var(--incoming-chat-bg);
+        border-radius: 25px;
+        }
+
+        .result-area-container::-webkit-scrollbar-thumb {
+        background: var(--icon-color);
+        border-radius: 25px;
+        }
+        .chat-area {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        }
+        :root {
+        --text-color: #FFFFFF;
+        --icon-color: #ACACBE;
+        --icon-hover-bg: #5b5e71;
+        --placeholder-color: #dcdcdc;
+        --outgoing-chat-bg: #343541;
+        --incoming-chat-bg: #444654;
+        --outgoing-chat-border: #343541;
+        --incoming-chat-border: #444654;
+        }
+        .light-mode {
+        --text-color: #343541;
+        --icon-color: #a9a9bc;
+        --icon-hover-bg: #f1f1f3;
+        --placeholder-color: #6c6c6c;
+        --outgoing-chat-bg: #FFFFFF;
+        --incoming-chat-bg: #F7F7F8;
+        --outgoing-chat-border: #FFFFFF;
+        --incoming-chat-border: #D9D9E3;
+        }
+        body {
+        background: var(--outgoing-chat-bg);
+        }
+
+        /* Chats container styling */
+        .chat-container {
+        overflow-y: auto;
+        max-height: 100vh;
+        padding-bottom: 150px;
+        align-items: center;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar {
+        width: 6px;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar-track {
+        background: var(--incoming-chat-bg);
+        border-radius: 25px;
+        }
+        :where(.chat-container, textarea)::-webkit-scrollbar-thumb {
+        background: var(--icon-color);
+        border-radius: 25px;
+        }
+        .default-text {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        height: 70vh;
+        padding: 0 10px;
+        text-align: center;
+        color: var(--text-color);
+        }
+        .default-text h1 {
+        font-size: 3.3rem;
+        }
+        .default-text p {
+        margin-top: 10px;
+        font-size: 1.1rem;
+        }
+        .chat-container .chat {
+        padding: 25px 10px;
+        display: flex;
+        justify-content: center;
+        color: var(--text-color);
+        }
+        .chat-container .chat.outgoing {
+        background: var(--outgoing-chat-bg);
+        border: 1px solid var(--outgoing-chat-border);
+        }
+        .chat-container .chat.incoming {
+        background: var(--incoming-chat-bg);
+        border: 1px solid var(--incoming-chat-border);
+        }
+        .chat .chat-content {
+        display: flex;
+        max-width: 1200px;
+        width: 100%;
+        align-items: flex-start;
+        justify-content: space-between;
+        }
+        span.material-symbols-rounded {
+        user-select: none;
+        cursor: pointer;
+        }
+        .chat .chat-content span {
+        cursor: pointer;
+        font-size: 1.3rem;
+        color: var(--icon-color);
+        visibility: hidden;
+        }
+        .chat:hover .chat-content:not(:has(.typing-animation), :has(.error)) span {
+        visibility: visible;
+        }
+        .chat .chat-details {
+        display: flex;
+        align-items: center;
+        }
+        .chat .chat-details img {
+        width: 35px;
+        height: 35px;
+        align-self: flex-start;
+        object-fit: cover;
+        border-radius: 2px;
+        }
+        .chat .chat-details p {
+        white-space: pre-wrap;
+        font-size: 1.05rem;
+        padding: 0 50px 0 25px;
+        color: var(--text-color);
+        word-break: break-word;
+        }
+        .chat .chat-details p.error {
+        color: #e55865;
+        }
+        .chat .typing-animation {
+        padding-left: 25px;
+        display: inline-flex;
+        }
+        .typing-animation .typing-dot {
+        height: 7px;
+        width: 7px;
+        border-radius: 50%;
+        margin: 0 3px;
+        opacity: 0.7;
+        background: var(--text-color);
+        animation: animateDots 1.5s var(--delay) ease-in-out infinite;
+        }
+        .typing-animation .typing-dot:first-child {
+        margin-left: 0;
+        }
+        @keyframes animateDots {
+        0%,44% {
+            transform: translateY(0px);
+        }
+        28% {
+            opacity: 0.4;
+            transform: translateY(-6px);
+        }
+        44% {
+            opacity: 0.2;
+        }
+        }
+
+        /* Typing container styling */
+        .typing-container {
+        position: fixed;
+        bottom: 0;
+        width: 100vw;
+        display: flex;
+        padding: 20px 10px;
+        justify-content: center;
+        background: var(--outgoing-chat-bg);
+        border-top: 1px solid var(--incoming-chat-border);
+        }
+        .typing-container .typing-content {
+        display: flex;
+        max-width: 100%;
+        width: 100%;
+        align-items: center;
+        }
+        .typing-container .typing-textarea {
+        width: 100%;
+        display: flex;
+        position: relative;
+        }
+        .typing-textarea{
+        resize:none;
+        height: 50px;
+        width: 100%;
+        border: none;
+        /* padding: 15px 45px 15px 20px; */
+        /* color: var(--text-color); */
+        font-size: 1rem;
+        border-radius: 4px;
+        max-height: 250px;
+        overflow-y:auto;
+        
+        /* background: var(--incoming-chat-bg); */
+        outline: 1px solid var(--incoming-chat-border);
+        }
+
+        .typing-textarea input[type="text"] {
+        width: 70vw; /* Adjust the width as needed */
+        height: 50px; /* Adjust the height as needed */
+        padding: 10px; /* Padding for the text within the input */
+        border: 1px solid var(--incoming-chat-bg);
+        background-color: #444654;
+        border-radius: 5px;
+        font-size: 15px; 
+        color: white;
+        }
+
+        .typing-textarea{
+            position: absolute;
+            left: 100px;
+        }
+
+
+        
+        .typing-textarea input[type="text"]::placeholder {
+            font-size: 15px;
+            color:#FFFFFF;
+        }
+        
+        #queryForm{
+            display: flex;
+            align-items: center;
+        }
+
+        .typing-textarea button {
+            padding: 20px 20px;
+            background-color: #444654;
+            color:  #FFFFFF;
+            font-size: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        /* .typing-textarea textarea::placeholder {
+        color: var(--placeholder-color);
+        } */
+        .typing-content span {
+        width: 55px;
+        height: 50px;
+        display: flex;
+        border-radius: 5px;
+        /* font-size: 1.35rem; */
+        align-items: center;
+        justify-content: center;
+        color: var(--icon-color);
+        }
+        /* .typing-textarea span {
+        position: absolute;
+        right: 0;
+        bottom: 0;
+        visibility: hidden;
+        } */
+        /* .typing-textarea textarea:valid ~ span {
+        visibility: visible;
+        } */
+        .typing-controls {
+        display: flex;
+        }
+        .typing-controls span {
+        margin-left: 7px;
+        font-size: 0.8rem;
+        background: var(--incoming-chat-bg);
+        outline: 1px solid var(--incoming-chat-border);
+        }
+        .typing-controls span:hover {
+        background: var(--icon-hover-bg);
+        }
+
+        .model-response img{
+            height: 25vw;
+            width: 50vw;
+            padding: 5px;
+        }
+
+        #answerOutput{
+            padding: 5px;
+        }
+
+        .model-response{
+            display: inline-block; /* Makes the container shrink-wrap the content */
+            width: 90vw;
+            height: 45vw;
+            display: flex;
+            position: absolute;
+            flex-direction: column;
+            align-items: center;
+            background-color: rgb(0, 0, 0); /* Sets the background color of the container to white */
+            color: rgb(255, 254, 254); /* Sets the text color inside the container to black */
+            border: 1px solid #000000; /* Optional: adds a light grey border */
+            border-radius: 5px; /* Rounds the corners of the container */
+            box-sizing: border-box; /* Ensures padding and border are included in the total width and height */
+            overflow: auto;
+
+        }
+
+        
+        /* Reponsive Media Query */
+        @media screen and (max-width: 600px) {
+        .default-text h1 {
+            font-size: 2.3rem;
+        }
+        :where(.default-text p, textarea, .chat p) {
+            font-size: 0.95rem!important;
+        }
+        .chat-container .chat {
+            padding: 20px 10px;
+        }
+        .chat-container .chat img {
+            height: 32px;
+            width: 32px;
+        }
+        .chat-container .chat p {
+            padding: 0 20px;
+        }
+        .chat .chat-content:not(:has(.typing-animation), :has(.error)) span {
+            visibility: visible;
+        }
+        .typing-container {
+            padding: 15px 10px;
+        }
+        .typing-textarea textarea {
+            height: 45px;
+            padding: 10px 40px 10px 10px;
+        }
+        .typing-content span {
+            height: 45px;
+            width: 45px;
+            margin-left: 5px;
+        }
+        span.material-symbols-rounded {
+            font-size: 1.25rem!important;
+        }
+        }
+    </style>
+</head>
+<body>
+        <!-- <div class="container">
+          <div class="result-area">
+            <div class="result-area">
+              <div class="result-area-heading">Result Area</div>
+              <div class="result-area-container">
+                <img src="data:image/png;base64,{{image_data}}" alt="Stock Trend Image">
+              </div>
+            </div>
+          </div> -->
+          
+          <div class="chat-area">
+            <!-- Chat container and other elements -->
+            <!-- Chats container -->
+            <div class="model-response">
+                <!-- <h1>Lorem ipsum, dolor sit amet consectetur adipisicing elit. Corrupti commodi tempora sit perspiciatis beatae incidunt? Soluta ea unde voluptatem praesentium? Et doloremque voluptatibus necessitatibus. Obcaecati architecto adipisci eum natus similique.</h1> -->
+                <h2>Answer</h2>
+                <div id="answerOutput"></div>
+                <img src="data:image/png;base64,{{image_data}}" alt="Stock Trend Image">
+            </div>
+            </div>
+        <div class="chat-container"></div>
+        
+        <!-- Typing container -->
+        <div class="typing-container">
+          <div class="typing-content">
+            <div class="typing-textarea">
+                <form id="queryForm">
+                    <input type="text" id="queryInput" placeholder="Enter your query" required>
+                    <button type="submit">Submit</button>
+                </form>
+            </div>
+            <!-- <div class="typing-controls">
+              <span id="theme-btn" class="material-symbols-rounded">light_mode</span>
+              <span id="delete-btn" class="material-symbols-rounded">delete</span>
+          </div> -->
+        </div>
+          </div>
+        </div>
+    
+    <script>
+        document.getElementById('queryForm').onsubmit = function(event) {
+            event.preventDefault();
+            var query = document.getElementById('queryInput').value;
+            fetch('/process_query', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ query: query })
+            }).then(response => response.json())
+            .then(data => {
+                document.getElementById('answerOutput').innerHTML = data.answer;
+                // Display the image
+                var imgElement = document.querySelector('.model-response img');
+                if (!imgElement) {
+                    imgElement = document.createElement('img');
+                    imgElement.alt = "Stock Trend Image";
+                    document.querySelector('.model-response').appendChild(imgElement);
+                }
+                imgElement.src = `data:image/png;base64,${data.image_data}`;
+                const urlsList = document.getElementById('urlsList');
+                urlsList.innerHTML = '';
+                data.urls.forEach(url => {
+                    let listItem = document.createElement('li');
+                    listItem.innerHTML = `<a href="${url}" target="_blank">${url}</a>`;
+                    urlsList.appendChild(listItem);
+                });
+            }).catch(error => console.error('Error:', error));
+        };
+    </script>
+</body>
+</html>

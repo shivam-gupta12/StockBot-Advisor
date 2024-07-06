@@ -1,0 +1,13 @@
+flask
+tiktoken
+chromadb
+chroma
+duckduckgo-search
+langchain
+selenium
+webdriver-manager
+flask_socketio
+bs4
+eventlet
+yfinance
+matplotlib
